@@ -16,6 +16,7 @@
     "braintree": "^3.24.0",
     "colors": "^1.4.0",
     "concurrently": "^7.2.1",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
