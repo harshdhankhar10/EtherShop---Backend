@@ -2,6 +2,8 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Order from "../models/orderModel.js";
 import User from "../models/userModel.js";
+import Product from "../models/productModel.js";
+import Category from "../models/categoryModel.js";
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -285,5 +287,49 @@ export const ordersAnalytics = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Error fetching orders analytics", error });
+  }
+}
+
+
+// get total sales, total orders, total users, total products, total categories, total revenue
+
+export const getTotalAnalytics = async (req, res) => {
+
+  try {
+    const totalOrders = await Order.countDocuments();
+    const totalUsers = await User.countDocuments();
+    const totalProducts = await Product.countDocuments();
+    const totalCategories = await Category.countDocuments();
+    const totalRevenue = await Order.aggregate([
+      { $match: { 'payment.status': 'Successful' } },
+      { $group: { _id: null, total: { $sum: '$payment.amount' } } }
+    ]);
+    res.status(200).json({ success: true, message: "Total analytics fetched successfully", totalOrders, totalUsers, totalProducts, totalCategories, totalRevenue });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error fetching total analytics", error });
+  }
+}
+
+export const topSellingProducts = async (req, res) => {
+  try {
+    const orders = await Order.find({});
+    const products = await Product.find({});
+    const topProducts = [];
+    products.forEach(product => {
+      const totalSales = orders.reduce((acc, order) => {
+        const productIds = order.products.map(product => product.productId);
+        if (productIds.includes(product._id.toString())) {
+          return acc + 1;
+        }
+        return acc;
+      }, 0);
+      topProducts.push({ product, totalSales });
+    });
+    topProducts.sort((a, b) => b.totalSales - a.totalSales);
+    res.status(200).json({ success: true, message: "Top selling products fetched successfully", topProducts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error fetching top selling products", error });
   }
 }

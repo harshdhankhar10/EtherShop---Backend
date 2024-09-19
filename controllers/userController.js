@@ -63,3 +63,16 @@ export const userStatusChange = async (req, res) =>{
         res.status(500).json({success : false, message : "Internal Server error"})
     }
 }
+
+
+// for admin panel create user revier which ocnsists of user name, email, role, created at, status
+export const getUserOverview = async (req, res) =>{
+    try {
+        const users = await userModel.find().select("fullName email role createdAt status");
+        
+        res.status(200).json({success : true, message : "All users fetched", data : users})
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({success : false, message : "Internal Server error"})
+    }
+}

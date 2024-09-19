@@ -131,3 +131,62 @@ export const getAllUserBalances = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+//////////////////// Admin //////////////////////
+
+// Get All Funds
+export const getAllFunds = async (req, res) => {
+  try {
+    const funds = await Fund.find();
+
+    res.json({ success: true, funds });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get Fund and User Details using Fund ID
+export const getFundDetails = async (req, res) => {
+  const fundId = req.params.id;
+
+  try {
+    const fund = await Fund.findById(fundId);
+    const user = await User.findById(fund.user);
+
+    if (!fund || !user) {
+      return res.status(404).json({ success: false, message: 'Fund or User not found' });
+    }
+
+    res.json({ success: true, message : "Funds and User details fetched sucessfully" , fund, user });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+// Get complete funds analytics
+export const getCompleteFundsAnalytics = async (req, res) => {
+  try {
+    const totalFunds = await Fund.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalFunds: { $sum: '$amount' },
+        },
+      },
+    ]);
+
+    const totalUsers = await User.countDocuments();
+
+    res.json({
+      success: true,
+      totalFunds: totalFunds[0].totalFunds,
+      totalUsers,
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+    

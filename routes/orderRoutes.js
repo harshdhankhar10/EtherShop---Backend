@@ -3,7 +3,8 @@ import express from "express";
 const router = express.Router();
 import { createOrder, verifyPayment, getUserOrders,
     getUserAllOrders, getUserOrderDetails, getUserOrderStatusUpdates,trackOrderUsingOrderID,
-    getAllOrdersForAdmin,updateOrderStatus,cancelOrder, getOrderDetailsUsingID,ordersAnalytics
+    getAllOrdersForAdmin,updateOrderStatus,cancelOrder, getOrderDetailsUsingID,ordersAnalytics,
+    getTotalAnalytics, topSellingProducts
  } from "../controllers/orderController.js";
 import {requireSignIn, isAdmin} from "../middlewares/authMiddleware.js"
 
@@ -47,6 +48,12 @@ router.put("/update-order-status/:id", requireSignIn,isAdmin, updateOrderStatus)
 
 // Get Orders Analytics
 router.get("/orders-analytics", requireSignIn,isAdmin, ordersAnalytics);
+
+// Get Total Analytics for 
+router.get("/total-analytics", requireSignIn,isAdmin, getTotalAnalytics);
+
+// Get Top Selling Products
+router.get("/top-selling-products", requireSignIn,isAdmin, topSellingProducts);
 
 
 export default router;
