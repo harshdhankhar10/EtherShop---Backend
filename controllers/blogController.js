@@ -109,19 +109,6 @@ export const getAllCategories = async (req,res) =>{
 
 
 
-
-// export const getRelatedBlogs = async (req,res) =>{
-//     try {
-//         const blog = await Blog.findById(req.params.id)
-//         const relatedBlogs = await Blog.find({category: blog.category})
-//         res.status(200).json({success:true,relatedBlogs})
-        
-//     } catch (error) {
-//         console.log(error)
-//         res.status(500).json({success :false,message: "Internal Server Error", error})
-//     }
-// }
-
 export const getBlogsBasedOnCategory = async (req,res) =>{
     try {
         const blogs = await Blog.find({category: req.params.category})
@@ -138,6 +125,18 @@ export const deleteBlog = async (req,res) =>{
     try {
         const blog = await Blog.findByIdAndDelete(req.params.id)
         res.status(200).json({success:true, message: "Blog Deleted Successfully"})
+        
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({success :false,message: "Internal Server Error", error})
+    }
+}
+
+export const getRealtedBlog = async (req,res) =>{
+    try {
+        const blog = await Blog.findById(req.params.id)
+        const relatedBlogs = await Blog.find({category: blog.category, _id: {$ne: blog._id}})
+        res.status(200).json({success:true,relatedBlogs})
         
     } catch (error) {
         console.log(error)

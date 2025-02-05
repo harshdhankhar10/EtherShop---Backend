@@ -3,7 +3,7 @@ const router   = express.Router()
 
 
 import {createBlog, getAllBlogs, getBlogForLoggedInUser, updateBlog, getBlogById, deleteBlog,getAllCategories,
-    getBlogsBasedOnCategory
+    getBlogsBasedOnCategory, getRealtedBlog
 } from "../controllers/blogController.js"
 import {requireSignIn,isAdmin} from "../middlewares/authMiddleware.js"
 
@@ -14,7 +14,7 @@ router.get("/blog/:id",getBlogById)
 router.delete("/delete-blog/:id",requireSignIn,deleteBlog)
 router.put("/update-blog/:slug",requireSignIn,updateBlog)
 router.get("/all-categories",getAllCategories)
-// router.get("/related-blogs/:slug",getRelatedBlogs)
 router.get("/category/:category",getBlogsBasedOnCategory)
+router.get("/related-blogs/:id",getRealtedBlog)
 
 export default router;

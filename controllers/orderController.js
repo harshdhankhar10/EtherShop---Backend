@@ -36,9 +36,19 @@ export const createOrder = async (req, res) => {
     });
 
     await newOrder.save();
-    res.status(201).json({ success: true, message: "Order created successfully", order: newOrder, orderId: razorpayOrder.id });
+    res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+      order: newOrder,
+      orderId: razorpayOrder.id,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Order creation failed", error });
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Order creation failed",
+      error: error.message, 
+    });
   }
 };
 
@@ -47,45 +57,64 @@ export const verifyPayment = async (req, res) => {
   try {
     const { razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
 
-    // Validate request parameters
     if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
-      return res.status(400).json({ success: false, message: 'Missing required parameters' });
+      return res.status(400).json({
+        success: false,
+        message: "Missing required parameters",
+      });
     }
 
-    // Generate signature for verification
     const generatedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-      .digest('hex');
+      .digest("hex");
 
-    // Verify payment signature
     if (generatedSignature === razorpaySignature) {
-
       const paymentDetails = await razorpayInstance.payments.fetch(razorpayPaymentId);
       const modeOfPayment = paymentDetails.method;
-      
+
       const paymentId = paymentDetails.id;
-      // Check if order exists
-      const order = await Order.findOne({ 'payment.orderId': razorpayOrderId });
+      const order = await Order.findOne({ "payment.orderId": razorpayOrderId });
+
       if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
+        return res.status(404).json({
+          success: false,
+          message: "Order not found",
+        });
       }
 
-      order.payment.status = 'Successful';
-      order.status = 'Processing';
+      order.payment.status = "Successful";
+      order.status = "Processing";
       order.payment.modeOfPayment = modeOfPayment;
       order.payment.paymentId = paymentId;
       order.payment.signature = razorpaySignature;
       await order.save();
 
-      res.status(200).json({ success: true, message: 'Payment verified successfully', order });
+      res.status(200).json({
+        success: true,
+        message: "Payment verified successfully",
+        order,
+      });
     } else {
-      order.payment.status = 'Failed';
-      res.status(400).json({ success: false, message: 'Payment verification failed' });
+      const order = await Order.findOne({ "payment.orderId": razorpayOrderId });
+      if (order) {
+        order.payment.status = "Failed";
+        order.status = "Failed";
+        await order.save();
+      }
+
+      res.status(400).json({
+        success: false,
+        message: "Payment verification failed",
+      });
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error during payment verification' });
+    console.error(error); 
+    res.status(500).json({
+      success: false,
+      message: "Server error during payment verification",
+      error: error.message, 
+    });
   }
 };
 

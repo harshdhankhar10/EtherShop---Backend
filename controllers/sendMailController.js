@@ -8,6 +8,8 @@ import bcrypt from 'bcrypt';
 
 dotenv.config()
 
+import { sendMail } from "../utils/mailHelper.js"
+
 
 
 export const sendMailForUsers = async (req,res) => {
@@ -365,13 +367,6 @@ export const requestPasswordReset = async (req, res) => {
   
     await user.save();
   
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            },
-    });
   
     const mailOptions = {
       to: user.email,
@@ -430,14 +425,8 @@ export const requestPasswordReset = async (req, res) => {
 </html>
     `
     };
-  
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Failed to send recovery email', error: err.message });
-        
-      }
-        res.status(200).json({ success: true, message: 'Recovery email sent' });
-    });
+    await sendMail(mailOptions);
+    res.send('Password reset link has been sent to your email address');
   };
   
 //   Mail for Password Reset
